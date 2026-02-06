@@ -1,0 +1,34 @@
+workflows:
+  ios-workflow:
+    name: iOS Build
+    environment:
+      xcode: latest
+      groups:
+        - appstore_credentials
+    scripts:
+      - name: Get dependencies
+        script: |
+          cd XcodeSourceCode
+          pod install
+      - name: Build for App Store
+        script: |
+          cd XcodeSourceCode
+          xcodebuild -workspace WebViewGold.xcworkspace \
+            -scheme WebViewGold \
+            -configuration Release \
+            -derivedDataPath build \
+            -archivePath build/WebViewGold.xcarchive \
+            archive
+      - name: Export IPA
+        script: |
+          cd XcodeSourceCode
+          xcodebuild -exportArchive \
+            -archivePath build/WebViewGold.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ipa
+    artifacts:
+      - XcodeSourceCode/build/ipa/**/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_KEY
+        submit_to_testflight: true
